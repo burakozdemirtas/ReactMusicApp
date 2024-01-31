@@ -231,7 +231,7 @@ const Slider = () => {
           </div>
         </div>
 
-        <span className='open' onClick={openNav} >&#9776; open</span>
+        <span className='open' onClick={openNav} >&#9776; </span>
 
         <div className='slider-container'>
           <div className={`slide slider1 ${currentIndex === 0 ? 'active' : ''}`}>

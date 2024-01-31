@@ -11,6 +11,14 @@ const Slider = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [volumeValue, setVolumeValue] = useState(80);
   const [seekbarValue, setSeekbarValue] = useState(0);
+  const [currentTime, setCurrentTime] = useState('0:00');
+  const [duration, setDuration] = useState('0:00');
+  const [time, setTime] = useState('0:00');
+  const [isLooping, setIsLooping] = useState(false);
+
+
+
+
 
   const openNav = () => {
     const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -45,20 +53,33 @@ const Slider = () => {
   const handlePlay = () => {
     const music = document.querySelector('.music-element');
     const playBtn = document.querySelector('.play');
+    const currentTimeElement = document.querySelector('.current-time');
 
     if (music.paused) {
       music.play();
       playBtn.innerHTML = '<i class="material-icons">pause</i>';
+      // Seekbar'ı sürekli güncelle
+      const seekbar = document.querySelector('.seekbar');
+
+      const updateSeekbar = () => {
+        seekbar.value = music.currentTime;
+
+        const cs = parseInt(music.currentTime % 60);
+        const cm = parseInt((music.currentTime / 60) % 60);
+        setCurrentTime(`${cm}:${cs}`);
+      };
+      music.addEventListener('timeupdate', updateSeekbar);
     } else {
       music.pause();
       playBtn.innerHTML = '<i class="material-icons">play_arrow</i>';
     }
-
+  
     music.addEventListener('ended', () => {
       playBtn.innerHTML = '<i class="material-icons">play_arrow</i>';
       music.currentTime = 0;
     });
   };
+  
 
   const handleVolume = () => {
     const volIcon = document.querySelector('.volume');
@@ -67,20 +88,38 @@ const Slider = () => {
     volBox.classList.toggle('active');
   };
 
-  
 
   const handleRepeat = () => {
     const music = document.querySelector('.music-element');
-    const repIcon = document.querySelector('.repeat');
+    const repIcon = document.querySelector('.repeat success');
 
-    if (music.loop == true) {
+    if (music.loop === true) {
+
       music.loop = false;
+      setIsLooping(false);
     } else {
       music.loop = true;
+      setIsLooping(true);
     }
-
     repIcon.classList.toggle('active');
+
+
   };
+
+
+  const handleSeekBar = (e) => {
+    const newTime = parseFloat(e.target.value);
+    const music = document.querySelector('.music-element');
+    music.currentTime = newTime;
+    // Müziğin oynatıldığı durumdaysa, seekbar'ı güncelle
+    if (!music.paused) {
+      const cs = parseInt(newTime % 60);
+      const cm = parseInt((newTime / 60) % 60);
+      setCurrentTime(`${cm}:${cs}`);
+    }
+    setSeekbarValue(e.target.value);
+  };
+
 
   const handleFavorite = () => {
     const favIcon = document.querySelector('.favorite');
@@ -107,23 +146,59 @@ const Slider = () => {
     music.volume = e.target.value / 100;
   };
 
-  const handleSeekBarChange = (e) => {
-    setSeekbarValue(e.target.value);
-    const music = document.querySelector('.music-element');
-    music.currentTime = (e.target.value / 100) * music.duration;
-  };
+  
+
 
   useEffect(() => {
     openNav();
     const slides = document.querySelectorAll(".slide");
     slides[currentIndex].classList.add("active");
 
+
+    var music = document.querySelector('.music-element')
+    var seekbar = document.querySelector('.seekbar')
+    var currentTime = document.querySelector('.current-time')
+    var duration = document.querySelector('.duration')
+
+
+    const handleLoadedData = () => {
+      const music = document.querySelector('.music-element');
+      const seekbar = document.querySelector('.seekbar');
+      const ds = parseInt(music.duration % 60);
+      const dm = parseInt((music.duration / 60) % 60);
+      const totalSeconds = Math.round(music.duration); // Toplam süreyi saniye cinsinden al
+      setDuration(totalSeconds); // saniye cinsinden set et
+    };
+    
+ 
+
+
+    const handleTimeUpdate = () => {
+      setSeekbarValue(music.currentTime);
+      const cs = parseInt(music.currentTime % 60);
+      const cm = parseInt((music.currentTime / 60) % 60);
+      setCurrentTime(`${cm}:${cs}`);
+    };
+
+  music.addEventListener('loadeddata', handleLoadedData);
+  music.addEventListener('timeupdate', handleTimeUpdate);
+
+
+    
+
     document.addEventListener("wheel", handleWheel);
 
     return () => {
       document.removeEventListener("wheel", handleWheel);
+
+      music.removeEventListener('loadeddata', handleLoadedData);
+      music.removeEventListener('timeupdate', handleTimeUpdate);
+
     };
   }, [currentIndex]);
+
+
+
 
   return (
     <>
@@ -134,9 +209,9 @@ const Slider = () => {
             <div className="logo">Just Music</div>
             <div className="menu-inner">
               <ul>
-                <li className='home'>Home</li>
-                <li>Event</li>
-                <li>New Album</li>
+                <li className='home'> <a href="#"> Home</a></li>
+                <li><a href="#"> Event</a></li>
+                <li><a href="#">New Album</a></li>
               </ul>
             </div>
             <div className="menu-social ">
@@ -185,26 +260,32 @@ const Slider = () => {
                 <span className="volume-up" onClick={handleVolumeUp}><i className="material-icons">add</i></span>
               </div>
               <div className="btn-box">
-                <i className="material-icons repeat" onClick={handleRepeat}>repeat</i>
+                <div className={`repeat ${isLooping ? 'active' : ''}`} onClick={handleRepeat} >
+                  <i className={`material-icons repeat-icon ${isLooping ? 'active' : ''}`}>repeat</i>
+                </div>
+
                 <i className="material-icons favorite active" onClick={handleFavorite}>favorite</i>
                 <i className="material-icons volume" onClick={handleVolume}>volume_up</i>
               </div>
               <div className="music-box">
                 <input
                   type="range"
-                  step="1"
-                  className="seekbar"
-                  value={seekbarValue}
                   min="0"
-                  max="100"
-                  onChange={(e) => handleSeekBarChange(e)}
+                  max={duration}
+                  value={seekbarValue}
+                  onChange={handleSeekBar}
+                  className="seekbar"
                 />
 
+
                 <audio className="music-element">
-                <source src="https://hosseinghanbari.ir/other/music-player/autumn.mp3" type="audio/mp3" />
+                  <source src="https://hosseinghanbari.ir/other/music-player/autumn.mp3" type="audio/mp3" />
 
                 </audio>
-                <span className="current-time"></span><span className="duration"></span>
+                <span className="current-time" onClick={handlePlay}>
+                  {currentTime}
+                </span>
+                <span className="duration">{`${Math.floor(duration / 60)}:${(duration % 60).toFixed(0).padStart(2, '0')}`}</span>
                 <span className="play" onClick={handlePlay}>
                   <i className="material-icons">play_arrow</i>
                 </span>

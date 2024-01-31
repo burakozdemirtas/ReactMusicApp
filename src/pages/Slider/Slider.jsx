@@ -150,7 +150,7 @@ const Slider = () => {
 
 
   useEffect(() => {
-    openNav();
+    // openNav(); //Mobilde menü otomatik açılsın istiyorsanız bu satırı aktif edin.
     const slides = document.querySelectorAll(".slide");
     slides[currentIndex].classList.add("active");
 

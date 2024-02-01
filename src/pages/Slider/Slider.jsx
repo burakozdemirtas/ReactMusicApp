@@ -127,17 +127,21 @@ const Slider = () => {
   };
 
   const handleVolumeDown = () => {
-    const volumeRange = document.querySelector('.volume-range');
-    setVolumeValue((prevValue) => prevValue - 20);
-    const music = document.querySelector('.music-element');
-    music.volume = volumeValue / 100;
+    setVolumeValue((prevValue) => {
+      const newVolume = prevValue - 20;
+      const music = document.querySelector('.music-element');
+      music.volume = newVolume / 100;
+      return newVolume;
+    });
   };
-
+  
   const handleVolumeUp = () => {
-    const volumeRange = document.querySelector('.volume-range');
-    setVolumeValue((prevValue) => prevValue + 20);
-    const music = document.querySelector('.music-element');
-    music.volume = volumeValue / 100;
+    setVolumeValue((prevValue) => {
+      const newVolume = prevValue + 20;
+      const music = document.querySelector('.music-element');
+      music.volume = newVolume / 100;
+      return newVolume;
+    });
   };
 
   const handleVolumeChange = (e) => {
